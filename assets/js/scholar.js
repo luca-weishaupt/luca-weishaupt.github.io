@@ -20,9 +20,9 @@ async function loadScholar() {
     });
 
     const papers = [];
-    doc.querySelectorAll('#gsc_a_b .gsc_a_tr').forEach(tr => {
+    doc.querySelectorAll('#gsc_a_t .gsc_a_tr').forEach(tr => {
       const title = tr.querySelector('.gsc_a_at')?.textContent.trim();
-      const year = tr.querySelector('.gsc_a_y')?.textContent.trim();
+      const year = tr.querySelector('.gsc_a_y span')?.textContent.trim();
       const citations = tr.querySelector('.gsc_a_c')?.textContent.trim() || '0';
       if (title) papers.push({ title, year, citations });
     });
