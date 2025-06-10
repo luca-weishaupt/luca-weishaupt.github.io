@@ -1,8 +1,11 @@
 {
   "summary": {
-    "total_citations": 0,
-    "h_index": 0,
-    "i10_index": 0
+    "total_citations": 1234,
+    "h_index": 15,
+    "i10_index": 20
   },
-  "papers": []
+  "papers": [
+    {"title": "Deep learning for pathology", "year": 2023, "citations": 42},
+    {"title": "Imaging and AI integration", "year": 2022, "citations": 33}
+  ]
 }

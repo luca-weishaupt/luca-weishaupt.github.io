@@ -7,14 +7,18 @@ fetch('assets/data/scholar-data.json')
     if (summaryEl && data.summary) {
       summaryEl.innerHTML = `<p>Total citations: ${data.summary.total_citations} | H-index: ${data.summary.h_index} | i10-index: ${data.summary.i10_index}</p>`;
     }
-    if (listEl && data.papers) {
+    if (listEl && data.papers && data.papers.length) {
       data.papers.forEach(p => {
         const li = document.createElement('li');
         li.textContent = `${p.title} (${p.year}) - ${p.citations} citations`;
         listEl.appendChild(li);
       });
+    } else if (listEl) {
+      listEl.innerHTML = '<li>No publications found.</li>';
     }
   })
   .catch(err => {
     console.error('Could not load scholar data', err);
+    const summaryEl = document.getElementById('pub-summary');
+    if (summaryEl) summaryEl.textContent = 'Publication data unavailable.';
   });
