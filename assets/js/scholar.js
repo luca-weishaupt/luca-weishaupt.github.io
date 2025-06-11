@@ -1,8 +1,8 @@
 // Fetch Google Scholar profile and display publication data in real-time
-// Uses a public CORS proxy to access the Google Scholar profile page
+// Uses the r.jina.ai proxy to bypass CORS on Google Scholar
 async function loadScholar() {
   const profileUrl =
-    'https://cors.isomorphic-git.org/https://scholar.google.com/citations?user=KUDBcugAAAAJ&hl=en&cstart=0&pagesize=100';
+    'https://r.jina.ai/https://scholar.google.com/citations?user=KUDBcugAAAAJ&hl=en&cstart=0&pagesize=100';
   try {
     const resp = await fetch(profileUrl);
     if (!resp.ok) throw new Error('Network response was not ok');
