@@ -35,13 +35,18 @@
 
                 #typed-container {
                         display: inline-block;
-                        height: 1.6em;
-                        line-height: 1.6em;
-                        overflow: hidden;
-                        white-space: nowrap;
-                        border-right: .1em solid #666;
                         font-size: 1.2em;
+                        white-space: nowrap;
+                        overflow: hidden;
                         margin-bottom: 0.5em;
+                }
+                #typed-text {
+                        border-right: .1em solid #666;
+                        animation: blink 1s step-end infinite;
+                }
+                @keyframes blink {
+                        from, to { border-color: transparent; }
+                        50% { border-color: #666; }
                 }
         </style>
 </head>
