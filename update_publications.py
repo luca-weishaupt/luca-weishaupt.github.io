@@ -8,6 +8,9 @@ import json
 from scholarly import scholarly
 import sys
 
+# Configuration
+MAX_PUBLICATIONS = 10  # Number of publications to fetch
+
 def fetch_publications(scholar_id):
     """Fetch publications from Google Scholar."""
     try:
@@ -26,7 +29,7 @@ def fetch_publications(scholar_id):
         
         # Extract publications
         publications = []
-        for pub in author_filled.get('publications', [])[:10]:  # Get top 10
+        for pub in author_filled.get('publications', [])[:MAX_PUBLICATIONS]:
             pub_filled = scholarly.fill(pub)
             publications.append({
                 'title': pub_filled.get('bib', {}).get('title', 'Untitled'),

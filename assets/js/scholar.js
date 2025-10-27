@@ -12,40 +12,49 @@ async function tryLoadStaticData() {
 }
 
 async function tryFetchWithProxy(scholarUrl, proxyUrl) {
-  const resp = await fetch(proxyUrl, { timeout: 5000 });
-  if (!resp.ok) throw new Error(`Proxy fetch failed: ${resp.status}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   
-  const html = await resp.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+  try {
+    const resp = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!resp.ok) throw new Error(`Proxy fetch failed: ${resp.status}`);
+  
+    const html = await resp.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
 
-  // --- Parse the citation summary ---
-  const summary = {};
-  doc.querySelectorAll('#gsc_rsb_st tbody tr').forEach(row => {
-    const metric = row.children[0]?.textContent.trim() || '';
-    const value = row.children[1]?.textContent.trim() || '';
-    if (/Citations/i.test(metric)) summary.total_citations = value;
-    else if (/h-index/i.test(metric)) summary.h_index = value;
-    else if (/i10-index/i.test(metric)) summary.i10_index = value;
-  });
+    // --- Parse the citation summary ---
+    const summary = {};
+    doc.querySelectorAll('#gsc_rsb_st tbody tr').forEach(row => {
+      const metric = row.children[0]?.textContent.trim() || '';
+      const value = row.children[1]?.textContent.trim() || '';
+      if (/Citations/i.test(metric)) summary.total_citations = value;
+      else if (/h-index/i.test(metric)) summary.h_index = value;
+      else if (/i10-index/i.test(metric)) summary.i10_index = value;
+    });
 
-  // --- Parse the list of papers ---
-  const papers = [];
-  doc.querySelectorAll('tr.gsc_a_tr').forEach(tr => {
-    const titleEl = tr.querySelector('.gsc_a_at');
-    const yearEl = tr.querySelector('.gsc_a_y span');
-    const citeEl = tr.querySelector('.gsc_a_c a') || tr.querySelector('.gsc_a_c');
-    const linkEl = tr.querySelector('.gsc_a_at');
-    
-    const title = titleEl?.textContent.trim();
-    const year = yearEl?.textContent.trim() || 'N/A';
-    const citations = citeEl?.textContent.trim() || '0';
-    const url = linkEl?.href || '';
-    
-    if (title) papers.push({ title, year, citations, url });
-  });
+    // --- Parse the list of papers ---
+    const papers = [];
+    doc.querySelectorAll('tr.gsc_a_tr').forEach(tr => {
+      const titleEl = tr.querySelector('.gsc_a_at');
+      const yearEl = tr.querySelector('.gsc_a_y span');
+      const citeEl = tr.querySelector('.gsc_a_c a') || tr.querySelector('.gsc_a_c');
+      const linkEl = tr.querySelector('.gsc_a_at');
+      
+      const title = titleEl?.textContent.trim();
+      const year = yearEl?.textContent.trim() || 'N/A';
+      const citations = citeEl?.textContent.trim() || '0';
+      const url = linkEl?.href || '';
+      
+      if (title) papers.push({ title, year, citations, url });
+    });
 
-  return { summary, publications: papers };
+    return { summary, publications: papers };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
 }
 
 async function tryLiveFetch(scholarUrl) {
