@@ -1,16 +1,5 @@
 // assets/js/scholar.js
 
-async function tryLoadStaticData() {
-  try {
-    const resp = await fetch('assets/data/publications.json');
-    if (!resp.ok) throw new Error('Static data not found');
-    return await resp.json();
-  } catch (err) {
-    console.log('Could not load static publications data:', err.message);
-    return null;
-  }
-}
-
 async function tryFetchWithProxy(scholarUrl, proxyUrl) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -57,51 +46,40 @@ async function tryFetchWithProxy(scholarUrl, proxyUrl) {
   }
 }
 
-async function tryLiveFetch(scholarUrl) {
-  // Try multiple CORS proxies
+async function loadScholar() {
+  const scholarUrl = 'https://scholar.google.com/citations?user=KUDBcugAAAAJ&hl=en&cstart=0&pagesize=100';
+  
+  // Try multiple CORS proxies to fetch dynamically from Google Scholar
   const proxies = [
     'https://api.allorigins.win/raw?url=',
     'https://corsproxy.io/?',
     'https://api.codetabs.com/v1/proxy?quest='
   ];
   
+  let data = null;
+  
+  // Try each proxy
   for (const proxy of proxies) {
     try {
+      console.log(`Attempting to fetch from Google Scholar via ${proxy}...`);
       const proxyUrl = proxy + encodeURIComponent(scholarUrl);
-      const data = await tryFetchWithProxy(scholarUrl, proxyUrl);
+      data = await tryFetchWithProxy(scholarUrl, proxyUrl);
       if (data && data.summary && data.summary.total_citations) {
         console.log(`Successfully fetched via ${proxy}`);
-        return data;
+        break;
       }
     } catch (err) {
       console.log(`Proxy ${proxy} failed:`, err.message);
       continue;
     }
   }
-  
-  return null;
-}
-
-async function loadScholar() {
-  const scholarUrl = 'https://scholar.google.com/citations?user=KUDBcugAAAAJ&hl=en&cstart=0&pagesize=100';
-  
-  // Try to load static data first (faster and more reliable)
-  let data = await tryLoadStaticData();
-  
-  // If static data not available or outdated, try live fetch
-  if (!data || !data.summary || !data.summary.total_citations || data.summary.total_citations === "Loading...") {
-    console.log('Attempting live fetch from Google Scholar...');
-    data = await tryLiveFetch(scholarUrl);
-  } else {
-    console.log('Loaded publications from static data');
-  }
 
   // Display the data
   const summaryEl = document.getElementById('pub-summary');
   const listEl = document.getElementById('pub-list');
 
-  if (data && data.summary && data.summary.total_citations && data.summary.total_citations !== "Loading...") {
-    // Successfully got data
+  if (data && data.summary && data.summary.total_citations) {
+    // Successfully got data from Google Scholar
     if (summaryEl) {
       summaryEl.innerHTML = `
         <p style="margin-bottom: 1em;">
@@ -133,8 +111,8 @@ async function loadScholar() {
       }
     }
   } else {
-    // All methods failed - show a direct link to Google Scholar
-    console.error('Could not load publications data. Showing direct link.');
+    // All proxies failed - show a direct link to Google Scholar
+    console.error('Could not load publications data from Google Scholar. Showing direct link.');
     
     if (summaryEl) {
       summaryEl.innerHTML = `
